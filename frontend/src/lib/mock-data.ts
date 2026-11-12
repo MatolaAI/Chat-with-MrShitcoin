@@ -2,6 +2,7 @@ export type Message = {
   id: string;
   text: string;
   sender: 'me' | 'them';
+  senderName?: string;
   timestamp: string;
   status: 'sent' | 'delivered' | 'read';
 };
@@ -14,8 +15,10 @@ export type Conversation = {
   timestamp: string;
   unreadCount: number;
   messages: Message[];
+  isGroup?: boolean;
+  adminOnly?: boolean;
+  description?: string;
 };
-
 export const mockConversations: Conversation[] = [
   {
     id: '1',
@@ -29,6 +32,64 @@ export const mockConversations: Conversation[] = [
       { id: 'm2', text: 'Nzuri sana, wewe je?', sender: 'me', timestamp: '10:41 AM', status: 'read' },
       { id: 'm3', text: 'Tuko pamoja kwenye hilo.', sender: 'them', timestamp: '10:42 AM', status: 'read' },
     ],
+  },
+
+    {
+    id: 'g1',
+    name: 'Shitcoin introduction',
+    avatarInitials: 'SI',
+    lastMessage: '~Jamal: Welcome everyone to the group!',
+    timestamp: '11:20 AM',
+    unreadCount: 5,
+    isGroup: true,
+    adminOnly: false,
+    description: 'Group created by Mr. Shitcoin. Welcome to the basics.',
+    messages: [
+      { id: 'gm1', text: 'Welcome everyone to the group!', sender: 'them', senderName: 'Jamal', timestamp: '11:20 AM', status: 'read' },
+      { id: 'gm2', text: 'Thanks for adding me.', sender: 'me', timestamp: '11:22 AM', status: 'read' }
+    ]
+  },
+  {
+    id: 'g2',
+    name: 'Cryptocurrency from beginner',
+    avatarInitials: 'CB',
+    lastMessage: '~Diana: Does anyone have a good video on wallets?',
+    timestamp: '10:05 AM',
+    unreadCount: 0,
+    isGroup: true,
+    adminOnly: false,
+    description: 'A safe place for beginners to ask questions.',
+    messages: [
+      { id: 'gm3', text: 'Does anyone have a good video on wallets?', sender: 'them', senderName: 'Diana', timestamp: '10:05 AM', status: 'read' }
+    ]
+  },
+  {
+    id: 'g3',
+    name: 'Shitcoin Masterclass',
+    avatarInitials: 'SM',
+    lastMessage: '~Admin: Please review the pinned message.',
+    timestamp: 'Yesterday',
+    unreadCount: 12,
+    isGroup: true,
+    adminOnly: true,
+    description: 'Only admins can post here. Important announcements only.',
+    messages: [
+      { id: 'gm4', text: 'Please review the pinned message.', sender: 'them', senderName: 'Admin', timestamp: 'Yesterday', status: 'read' }
+    ]
+  },
+  {
+    id: 'g4',
+    name: 'Road to dubai',
+    avatarInitials: 'RD',
+    lastMessage: '~Angel: Tickets booked! ✈️',
+    timestamp: 'Monday',
+    unreadCount: 0,
+    isGroup: true,
+    adminOnly: false,
+    description: 'Planning the next crypto meetup in Dubai.',
+    messages: [
+      { id: 'gm5', text: 'Tickets booked! ✈️', sender: 'them', senderName: 'Angel', timestamp: 'Monday', status: 'read' }
+    ]
   },
   {
     id: '2',

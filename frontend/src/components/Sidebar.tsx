@@ -34,7 +34,7 @@ export default function Sidebar({ conversations, activeId, onSelect }: SidebarPr
         </div>
       </div>
 
-      {/* Filter Pills - Matching the screenshot exactly */}
+      {/* Filter Pills */}
       <div className="flex items-center gap-2 px-3 pb-3 text-[13px] text-wa-text">
         <button className="rounded-full bg-[#103529] px-3 py-1 text-[#00a884]">All</button>
         <button className="rounded-full border border-[#2a3942] px-3 py-1 text-wa-muted hover:bg-[#202c33]">Favourites</button>
@@ -55,9 +55,17 @@ export default function Sidebar({ conversations, activeId, onSelect }: SidebarPr
               activeId === chat.id ? 'bg-wa-hover' : ''
             }`}
           >
+            {/* Group avatars show an icon, Personal avatars show initials */}
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-600 font-medium text-white">
-              {chat.avatarInitials}
+              {chat.isGroup ? (
+                <svg className="h-6 w-6 text-wa-muted" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                </svg>
+              ) : (
+                chat.avatarInitials
+              )}
             </div>
+            
             <div className="flex-1 overflow-hidden border-b border-transparent">
               <div className="flex items-center justify-between">
                 <span className="text-[16px] text-wa-text">{chat.name}</span>
@@ -68,7 +76,7 @@ export default function Sidebar({ conversations, activeId, onSelect }: SidebarPr
               <div className="mt-0.5 flex items-center justify-between">
                 <span className="truncate text-[14px] text-wa-muted">{chat.lastMessage}</span>
                 {chat.unreadCount > 0 && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-wa-green text-[11px] font-bold text-black">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-wa-green text-[11px] font-bold text-black">
                     {chat.unreadCount}
                   </span>
                 )}
