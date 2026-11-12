@@ -85,7 +85,7 @@ export default function ChatWindow({ conversation, onSendMessage }: ChatWindowPr
       setIsRecording(false);
       return;
     }
-    onSendMessage(`🎤 Voice message (${formatTime(recordingTime)})`);
+    onSendMessage(`Voice message (${formatTime(recordingTime)})`);
     setIsRecording(false);
   };
 
