@@ -7,7 +7,8 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #0b141a; /* WhatsApp outer background */
+  background-color: #0b141a;
+  /* WhatsApp outer background */
 }
 
 /* WhatsApp Chat Pattern */
@@ -15,6 +16,8 @@ body {
   background-color: #0b141a;
   background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
   background-repeat: repeat;
-  background-size: 400px;
-  opacity: 0.9; /* Blends pattern slightly */
+  background-size: 350px;
+  background-blend-mode: overlay;
+  opacity: 0.4;
+  
 }
