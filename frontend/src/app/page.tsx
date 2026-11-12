@@ -8,9 +8,11 @@ import StatusSidebar from '@/components/StatusSidebar';
 import StatusView from '@/components/StatusView';
 import { mockConversations, Conversation, Message } from '@/lib/mock-data';
 
+// NEW: Added allowedViewers array
 export type MyStatus = {
   type: 'text' | 'image' | null;
   content: string;
+  allowedViewers: string[]; 
 };
 
 export default function Home() {
@@ -19,8 +21,7 @@ export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
   const [activeChatId, setActiveChatId] = useState<string | null>(mockConversations[0].id);
 
-  // NEW: State for My Status
-  const [myStatus, setMyStatus] = useState<MyStatus>({ type: null, content: '' });
+  const [myStatus, setMyStatus] = useState<MyStatus>({ type: null, content: '', allowedViewers: [] });
 
   const activeConversation = conversations.find((c) => c.id === activeChatId) || null;
 
@@ -71,7 +72,12 @@ export default function Home() {
         ) : (
           <>
             <StatusSidebar myStatus={myStatus} />
-            <StatusView myStatus={myStatus} onSetStatus={setMyStatus} />
+            {/* We pass conversations to StatusView so it can filter eligible viewers */}
+            <StatusView 
+              myStatus={myStatus} 
+              onSetStatus={setMyStatus} 
+              conversations={conversations} 
+            />
           </>
         )}
 

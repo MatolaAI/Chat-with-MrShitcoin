@@ -2,43 +2,62 @@
 
 import { useState } from 'react';
 import { MyStatus } from '@/app/page';
+import { Conversation } from '@/lib/mock-data';
 
 type StatusViewProps = {
   myStatus: MyStatus;
   onSetStatus: (status: MyStatus) => void;
+  conversations: Conversation[]; // NEW
 };
 
-export default function StatusView({ myStatus, onSetStatus }: StatusViewProps) {
+export default function StatusView({ myStatus, onSetStatus, conversations }: StatusViewProps) {
   const [showTextModal, setShowTextModal] = useState(false);
   const [textInput, setTextInput] = useState('');
 
+  // 1. Filter contacts based on your rule: Must be 1-on-1 chat, and must have replied (more than 1 message)
+  const eligibleContacts = conversations.filter(
+    (c) => !c.isGroup && c.messages.length > 1
+  );
+
+  // 2. State for selected viewers (Default: select all eligible)
+  const [selectedViewers, setSelectedViewers] = useState<string[]>(
+    eligibleContacts.map(c => c.id)
+  );
+
+  const toggleViewer = (id: string) => {
+    setSelectedViewers(prev => 
+      prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id]
+    );
+  };
+
   const handleSaveText = () => {
     if (textInput.trim()) {
-      onSetStatus({ type: 'text', content: textInput });
+      onSetStatus({ 
+        type: 'text', 
+        content: textInput,
+        allowedViewers: selectedViewers
+      });
       setShowTextModal(false);
       setTextInput('');
     }
   };
 
   const handleFakeImageUpload = () => {
-    // In a real app, this would open a file input. 
-    // Here we simulate uploading an image by setting a placeholder URL.
     onSetStatus({ 
       type: 'image', 
-      content: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?q=80&w=1000&auto=format&fit=crop' 
+      content: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?q=80&w=1000&auto=format&fit=crop',
+      allowedViewers: selectedViewers
     });
   };
 
   return (
     <div className="flex flex-1 flex-col bg-[#222e35] items-center justify-center relative">
       
-      {/* Top Right Menu Icon */}
       <div className="absolute top-4 right-4 text-wa-muted cursor-pointer hover:text-wa-text">
         <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg>
       </div>
 
       <div className="flex flex-col items-center max-w-sm text-center">
-        {/* Large Circle Icon */}
         <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border-[6px] border-[#364147]">
           <div className="h-10 w-10 rounded-full border-4 border-[#364147]"></div>
         </div>
@@ -49,7 +68,6 @@ export default function StatusView({ myStatus, onSetStatus }: StatusViewProps) {
         </p>
 
         <div className="flex gap-4">
-          {/* Text Status Button */}
           <button 
             onClick={() => setShowTextModal(true)}
             className="flex flex-col items-center gap-2 group"
@@ -60,7 +78,6 @@ export default function StatusView({ myStatus, onSetStatus }: StatusViewProps) {
             <span className="text-[13px] text-wa-text">Text status</span>
           </button>
 
-          {/* Photo & Video Button */}
           <button 
             onClick={handleFakeImageUpload}
             className="flex flex-col items-center gap-2 group"
@@ -76,14 +93,42 @@ export default function StatusView({ myStatus, onSetStatus }: StatusViewProps) {
       {/* Text Status Modal */}
       {showTextModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="w-[400px] rounded-lg bg-wa-panel p-6 shadow-xl">
+          <div className="w-[450px] rounded-lg bg-wa-panel p-6 shadow-xl">
             <h2 className="mb-4 text-xl font-medium text-wa-text">Add Text Status</h2>
             <textarea
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
               placeholder="Type your status here..."
-              className="h-32 w-full resize-none rounded-lg bg-wa-search p-3 text-wa-text focus:outline-none focus:ring-1 focus:ring-wa-green placeholder:text-wa-muted"
+              className="h-24 w-full resize-none rounded-lg bg-wa-search p-3 text-wa-text focus:outline-none focus:ring-1 focus:ring-wa-green placeholder:text-wa-muted"
             />
+            
+            {/* NEW: Privacy Settings */}
+            <div className="mt-5 mb-2">
+              <p className="text-[14px] font-medium text-wa-text mb-2 flex items-center gap-2">
+                <svg className="h-4 w-4 text-wa-muted" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                Who can view this?
+              </p>
+              <p className="text-[12px] text-wa-muted mb-3">Only showing contacts you have replied to.</p>
+              
+              <div className="max-h-32 overflow-y-auto space-y-2 bg-wa-search rounded-lg p-2 border border-wa-border">
+                {eligibleContacts.length === 0 ? (
+                  <p className="text-sm text-wa-muted italic">No eligible contacts yet.</p>
+                ) : (
+                  eligibleContacts.map(contact => (
+                    <label key={contact.id} className="flex items-center gap-3 p-1 cursor-pointer hover:bg-wa-hover rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedViewers.includes(contact.id)}
+                        onChange={() => toggleViewer(contact.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-wa-green focus:ring-wa-green accent-[#00a884]"
+                      />
+                      <span className="text-[14px] text-wa-text">{contact.name}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
             <div className="mt-4 flex justify-end gap-3">
               <button 
                 onClick={() => setShowTextModal(false)}
@@ -93,7 +138,8 @@ export default function StatusView({ myStatus, onSetStatus }: StatusViewProps) {
               </button>
               <button 
                 onClick={handleSaveText}
-                className="rounded-md bg-wa-green px-4 py-2 text-sm font-medium text-black hover:bg-[#00c298]"
+                disabled={selectedViewers.length === 0}
+                className="rounded-md bg-wa-green px-4 py-2 text-sm font-medium text-black hover:bg-[#00c298] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Share
               </button>
@@ -102,11 +148,11 @@ export default function StatusView({ myStatus, onSetStatus }: StatusViewProps) {
         </div>
       )}
 
-      {/* If you want to see what you uploaded, we could show it here, 
-          but WhatsApp usually shows the empty state until you click your own status */}
+      {/* Success Toast */}
       {myStatus.type && (
-        <div className="absolute bottom-10 flex items-center justify-center rounded-full bg-[#005c4b] px-6 py-2 text-sm text-white shadow-lg">
-          Your status has been added! Check "My status" on the left.
+        <div className="absolute bottom-10 flex flex-col items-center justify-center rounded-xl bg-[#005c4b] px-6 py-3 text-sm text-white shadow-lg">
+          <p className="font-medium">✅ Status added successfully!</p>
+          <p className="text-[12px] text-[#8696a0] mt-1">Visible to {myStatus.allowedViewers.length} contact(s)</p>
         </div>
       )}
     </div>
