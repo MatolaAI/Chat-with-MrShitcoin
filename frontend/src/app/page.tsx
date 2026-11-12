@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import NavRail from '@/components/NavRail';
 import Sidebar from '@/components/Sidebar';
 import ChatWindow from '@/components/ChatWindow';
 import { mockConversations } from '@/lib/mock-data';
@@ -11,14 +12,20 @@ export default function Home() {
   const activeConversation = mockConversations.find((c) => c.id === activeChatId) || null;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#111b21] p-4 lg:p-6">
-      {/* Container to mimic the WhatsApp Web centered box */}
-      <div className="mx-auto flex h-full w-full max-w-[1600px] overflow-hidden shadow-2xl">
+    <div className="flex h-screen w-full overflow-hidden bg-[#0b141a] p-0 lg:p-4">
+      {/* App Container */}
+      <div className="mx-auto flex h-full w-full max-w-[1600px] overflow-hidden lg:rounded-md bg-wa-panel shadow-2xl">
+        {/* 1. New Navigation Rail */}
+        <NavRail />
+        
+        {/* 2. Existing Sidebar */}
         <Sidebar
           conversations={mockConversations}
           activeId={activeChatId}
           onSelect={setActiveChatId}
         />
+        
+        {/* 3. Existing Chat Window */}
         <ChatWindow conversation={activeConversation} />
       </div>
     </div>
