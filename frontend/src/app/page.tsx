@@ -4,9 +4,13 @@ import { useState } from 'react';
 import NavRail from '@/components/NavRail';
 import Sidebar from '@/components/Sidebar';
 import ChatWindow from '@/components/ChatWindow';
+import StatusSidebar from '@/components/StatusSidebar';
+import StatusView from '@/components/StatusView';
 import { mockConversations, Conversation, Message } from '@/lib/mock-data';
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<'chats' | 'status'>('chats');
+  
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
   const [activeChatId, setActiveChatId] = useState<string | null>(mockConversations[0].id);
 
@@ -41,16 +45,28 @@ export default function Home() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#0b141a] p-0 lg:p-4">
       <div className="mx-auto flex h-full w-full max-w-[1600px] overflow-hidden lg:rounded-md bg-wa-panel shadow-2xl">
-        <NavRail />
-        <Sidebar
-          conversations={conversations}
-          activeId={activeChatId}
-          onSelect={setActiveChatId}
-        />
-        <ChatWindow 
-          conversation={activeConversation} 
-          onSendMessage={handleSendMessage} 
-        />
+        
+        <NavRail activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        {activeTab === 'chats' ? (
+          <>
+            <Sidebar
+              conversations={conversations}
+              activeId={activeChatId}
+              onSelect={setActiveChatId}
+            />
+            <ChatWindow 
+              conversation={activeConversation} 
+              onSendMessage={handleSendMessage} 
+            />
+          </>
+        ) : (
+          <>
+            <StatusSidebar />
+            <StatusView />
+          </>
+        )}
+
       </div>
     </div>
   );

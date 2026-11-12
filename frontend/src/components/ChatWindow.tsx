@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Conversation } from '@/lib/mock-data';
 
 type ChatWindowProps = {
@@ -8,8 +8,26 @@ type ChatWindowProps = {
   onSendMessage: (text: string) => void;
 };
 
+const COMMON_EMOJIS = ['😀', '😂', '🥰', '😎', '😭', '👍', '🙏', '🔥', '💚', '🎉', '💯', '🤔'];
+
 export default function ChatWindow({ conversation, onSendMessage }: ChatWindowProps) {
   const [inputText, setInputText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  
+  // Ref to close menus when clicking outside
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+        setShowAttachMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (!conversation) {
     return (
@@ -24,6 +42,11 @@ export default function ChatWindow({ conversation, onSendMessage }: ChatWindowPr
     if (!inputText.trim()) return;
     onSendMessage(inputText);
     setInputText('');
+    setShowEmojiPicker(false);
+  };
+
+  const handleEmojiClick = (emoji: string) => {
+    setInputText((prev) => prev + emoji);
   };
 
   return (
@@ -42,7 +65,6 @@ export default function ChatWindow({ conversation, onSendMessage }: ChatWindowPr
         </div>
         
         <div className="flex items-center gap-6 text-wa-muted">
-           {/* Header Icons (Video, Call, Search, Menu) */}
            <svg className="h-6 w-6 cursor-pointer hover:text-wa-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
            <svg className="h-6 w-6 cursor-pointer hover:text-wa-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
            <svg className="h-6 w-6 cursor-pointer hover:text-wa-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -84,19 +106,78 @@ export default function ChatWindow({ conversation, onSendMessage }: ChatWindowPr
         ))}
       </div>
 
-      {/* Input Area */}
-      <div className="bg-wa-panel px-4 py-2.5 relative z-10 flex items-center">
+      {/* Input Area & Menus */}
+      <div className="bg-wa-panel px-4 py-2.5 relative z-10 flex items-center" ref={menuRef}>
+        
         <form className="flex w-full items-center gap-2" onSubmit={handleSubmit}>
           
-          {/* Emoji Icon */}
-          <button type="button" className="p-1.5 text-wa-muted hover:text-wa-text">
-             <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
-          </button>
-          
-          {/* Attach Icon */}
-          <button type="button" className="p-1.5 text-wa-muted hover:text-wa-text">
-            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
-          </button>
+          <div className="relative">
+            {/* Emoji Button */}
+            <button 
+              type="button" 
+              onClick={() => {
+                setShowEmojiPicker(!showEmojiPicker);
+                setShowAttachMenu(false);
+              }}
+              className="p-1.5 text-wa-muted hover:text-wa-text"
+            >
+               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+            </button>
+
+            {/* Emoji Popup Menu */}
+            {showEmojiPicker && (
+              <div className="absolute bottom-12 left-0 z-50 w-64 rounded-lg bg-wa-panel p-2 shadow-xl border border-wa-border flex flex-wrap gap-2">
+                {COMMON_EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => handleEmojiClick(emoji)}
+                    className="text-2xl hover:bg-wa-hover p-1 rounded transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            {/* Attach Button */}
+            <button 
+              type="button" 
+              onClick={() => {
+                setShowAttachMenu(!showAttachMenu);
+                setShowEmojiPicker(false);
+              }}
+              className="p-1.5 text-wa-muted hover:text-wa-text"
+            >
+              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+            </button>
+
+            {/* Attach Popup Menu */}
+            {showAttachMenu && (
+              <div className="absolute bottom-12 left-0 z-50 w-48 rounded-lg bg-wa-panel py-2 shadow-xl border border-wa-border flex flex-col">
+                <button type="button" className="flex items-center gap-3 px-4 py-2 text-sm text-wa-text hover:bg-wa-hover text-left">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#bf59cf] text-white">
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"/></svg>
+                  </span>
+                  Photos & Videos
+                </button>
+                <button type="button" className="flex items-center gap-3 px-4 py-2 text-sm text-wa-text hover:bg-wa-hover text-left">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5157ae] text-white">
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                  </span>
+                  Document
+                </button>
+                <button type="button" className="flex items-center gap-3 px-4 py-2 text-sm text-wa-text hover:bg-wa-hover text-left">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#007bfc] text-white">
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  </span>
+                  Location
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Input Field */}
           <input
@@ -109,7 +190,6 @@ export default function ChatWindow({ conversation, onSendMessage }: ChatWindowPr
 
           {/* Dynamic Mic / Send Button */}
           {inputText.trim() ? (
-            // Green Send Button
             <button 
               type="submit" 
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-wa-green text-black hover:bg-[#00c298] transition-colors"
@@ -119,7 +199,6 @@ export default function ChatWindow({ conversation, onSendMessage }: ChatWindowPr
               </svg>
             </button>
           ) : (
-            // Mic Button
             <button type="button" className="p-1.5 text-wa-muted hover:text-wa-text">
               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
             </button>

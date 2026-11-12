@@ -1,13 +1,20 @@
 'use client';
 
-export default function NavRail() {
+type NavRailProps = {
+  activeTab: 'chats' | 'status';
+  onTabChange: (tab: 'chats' | 'status') => void;
+};
+
+export default function NavRail({ activeTab, onTabChange }: NavRailProps) {
   return (
     <div className="flex h-full w-[64px] flex-col items-center justify-between border-r border-wa-border bg-[#111b21] py-4">
-      {/* Top Icons */}
       <div className="flex flex-col items-center gap-6">
         
-        {/* Chats Icon (Active) with Unread Badge */}
-        <button className="relative text-wa-text">
+        {/* Chats Icon */}
+        <button 
+          onClick={() => onTabChange('chats')}
+          className={`relative transition-colors ${activeTab === 'chats' ? 'text-wa-text' : 'text-wa-muted hover:text-wa-text'}`}
+        >
           <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 3c5.5 0 10 3.58 10 8s-4.5 8-10 8c-1.24 0-2.43-.18-3.53-.5C5.55 21 2 21 2 21c2.33-2.33 2.7-3.9 2.75-4.5C3.05 15.07 2 13.13 2 11c0-4.42 4.5-8 10-8z" />
           </svg>
@@ -23,15 +30,20 @@ export default function NavRail() {
           </svg>
         </button>
 
-        {/* Status Icon with Green Dot */}
-        <button className="relative text-wa-muted hover:text-wa-text">
+        {/* Status Icon */}
+        <button 
+          onClick={() => onTabChange('status')}
+          className={`relative transition-colors ${activeTab === 'status' ? 'text-wa-text' : 'text-wa-muted hover:text-wa-text'}`}
+        >
           <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-wa-green border border-[#111b21]"></span>
+          {activeTab !== 'status' && (
+            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-wa-green border border-[#111b21]"></span>
+          )}
         </button>
 
-        {/* Communities Icon with Green Dot */}
+        {/* Communities Icon */}
         <button className="relative text-wa-muted hover:text-wa-text">
           <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -47,9 +59,7 @@ export default function NavRail() {
         </button>
       </div>
 
-      {/* Bottom Icons */}
       <div className="flex flex-col items-center gap-6 text-wa-muted">
-        {/* Settings */}
         <button className="hover:text-wa-text">
           <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -57,7 +67,6 @@ export default function NavRail() {
           </svg>
         </button>
         
-        {/* Profile Picture */}
         <button className="h-8 w-8 overflow-hidden rounded-full border border-wa-muted hover:border-wa-text mt-2">
           <img src="https://i.pravatar.cc/150?img=11" alt="Profile" className="h-full w-full object-cover" />
         </button>
