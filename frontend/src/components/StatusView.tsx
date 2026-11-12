@@ -151,7 +151,7 @@ export default function StatusView({ myStatus, onSetStatus, conversations }: Sta
       {/* Success Toast */}
       {myStatus.type && (
         <div className="absolute bottom-10 flex flex-col items-center justify-center rounded-xl bg-[#005c4b] px-6 py-3 text-sm text-white shadow-lg">
-          <p className="font-medium">✅ Status added successfully!</p>
+          <p className="font-medium">Status added successfully!</p>
           <p className="text-[12px] text-[#8696a0] mt-1">Visible to {myStatus.allowedViewers.length} contact(s)</p>
         </div>
       )}
