@@ -1,8 +1,13 @@
 'use client';
 
 import { mockStatuses } from '@/lib/status-mock-data';
+import { MyStatus } from '@/app/page';
 
-export default function StatusSidebar() {
+type StatusSidebarProps = {
+  myStatus: MyStatus;
+};
+
+export default function StatusSidebar({ myStatus }: StatusSidebarProps) {
   const recentStatuses = mockStatuses.filter(s => !s.isViewed);
   const viewedStatuses = mockStatuses.filter(s => s.isViewed);
 
@@ -23,15 +28,23 @@ export default function StatusSidebar() {
       <div className="flex-1 overflow-y-auto">
         {/* My Status */}
         <div className="flex cursor-pointer items-center gap-4 px-4 py-3 hover:bg-wa-hover">
-          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-600 font-medium text-white">
-             <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-             <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-wa-green text-black border-2 border-wa-panel">
-               <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-             </span>
+          
+          {/* If myStatus has content, show green ring, otherwise show normal profile icon */}
+          <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-600 font-medium text-white ${myStatus.type ? 'border-2 border-wa-green p-[2px]' : ''}`}>
+             <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-600 overflow-hidden">
+                <img src="https://i.pravatar.cc/150?img=11" alt="Profile" className="h-full w-full object-cover" />
+             </div>
+             {!myStatus.type && (
+               <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-wa-green text-black border-2 border-wa-panel">
+                 <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+               </span>
+             )}
           </div>
           <div>
             <h2 className="text-[16px] text-wa-text">My status</h2>
-            <p className="text-[13px] text-wa-muted">Click to add status update</p>
+            <p className="text-[13px] text-wa-muted">
+              {myStatus.type ? '1 new status' : 'Click to add status update'}
+            </p>
           </div>
         </div>
 

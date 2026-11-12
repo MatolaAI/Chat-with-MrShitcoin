@@ -8,11 +8,19 @@ import StatusSidebar from '@/components/StatusSidebar';
 import StatusView from '@/components/StatusView';
 import { mockConversations, Conversation, Message } from '@/lib/mock-data';
 
+export type MyStatus = {
+  type: 'text' | 'image' | null;
+  content: string;
+};
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'chats' | 'status'>('chats');
   
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
   const [activeChatId, setActiveChatId] = useState<string | null>(mockConversations[0].id);
+
+  // NEW: State for My Status
+  const [myStatus, setMyStatus] = useState<MyStatus>({ type: null, content: '' });
 
   const activeConversation = conversations.find((c) => c.id === activeChatId) || null;
 
@@ -62,8 +70,8 @@ export default function Home() {
           </>
         ) : (
           <>
-            <StatusSidebar />
-            <StatusView />
+            <StatusSidebar myStatus={myStatus} />
+            <StatusView myStatus={myStatus} onSetStatus={setMyStatus} />
           </>
         )}
 
