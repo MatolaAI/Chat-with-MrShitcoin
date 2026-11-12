@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Next.js build
+.next/
+out/
+build/
+dist/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
