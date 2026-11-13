@@ -1,17 +1,17 @@
 'use client';
 
 type NavRailProps = {
-  activeTab: 'chats' | 'status';
-  onTabChange: (tab: 'chats' | 'status') => void;
+  activeTab: 'chats' | 'status' | 'contacts';
+  onTabChange: (tab: 'chats' | 'status' | 'contacts') => void;
 };
 
 export default function NavRail({ activeTab, onTabChange }: NavRailProps) {
   return (
     <div className="flex h-full w-[64px] flex-col items-center justify-between border-r border-wa-border bg-[#111b21] py-4">
       <div className="flex flex-col items-center gap-6">
-        
+
         {/* Chats Icon */}
-        <button 
+        <button
           onClick={() => onTabChange('chats')}
           className={`relative transition-colors ${activeTab === 'chats' ? 'text-wa-text' : 'text-wa-muted hover:text-wa-text'}`}
         >
@@ -31,7 +31,7 @@ export default function NavRail({ activeTab, onTabChange }: NavRailProps) {
         </button>
 
         {/* Status Icon */}
-        <button 
+        <button
           onClick={() => onTabChange('status')}
           className={`relative transition-colors ${activeTab === 'status' ? 'text-wa-text' : 'text-wa-muted hover:text-wa-text'}`}
         >
@@ -51,6 +51,16 @@ export default function NavRail({ activeTab, onTabChange }: NavRailProps) {
           <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-wa-green border border-[#111b21]"></span>
         </button>
 
+        {/* Contacts Icon (NEW) */}
+        <button
+          onClick={() => onTabChange('contacts')}
+          className={`relative transition-colors ${activeTab === 'contacts' ? 'text-wa-text' : 'text-wa-muted hover:text-wa-text'}`}
+        >
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </button>
+
         {/* Channels Icon */}
         <button className="text-wa-muted hover:text-wa-text mt-2">
           <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -66,7 +76,7 @@ export default function NavRail({ activeTab, onTabChange }: NavRailProps) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </button>
-        
+
         <button className="h-8 w-8 overflow-hidden rounded-full border border-wa-muted hover:border-wa-text mt-2">
           <img src="https://i.pravatar.cc/150?img=11" alt="Profile" className="h-full w-full object-cover" />
         </button>
