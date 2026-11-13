@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import ChatWindow from '@/components/ChatWindow';
 import StatusSidebar from '@/components/StatusSidebar';
 import StatusView from '@/components/StatusView';
+import CreateGroupModal from '@/components/CreateGroupModal'; // NEW
 import { Conversation } from '@/lib/mock-data';
 import { ADMIN_USER_ID, fetchConversations, fetchMessages, sendMessage } from '@/services/api';
 import { adaptConversation } from '@/lib/adapter';
@@ -22,14 +23,22 @@ export default function Home() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [myStatus, setMyStatus] = useState<MyStatus>({ type: null, content: '', allowedViewers: [] });
   const [loading, setLoading] = useState(true);
+  
+  // NEW: State for Create Group modal + refresh key
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
+  // Load conversations (runs on mount + whenever refreshKey changes)
   useEffect(() => {
     async function load() {
       try {
         const apiConvs = await fetchConversations(ADMIN_USER_ID);
         const adapted = apiConvs.map((c) => adaptConversation(c, ADMIN_USER_ID));
         setConversations(adapted);
-        if (adapted.length > 0) setActiveChatId(adapted[0].id);
+        // Only auto-select the first chat if nothing is selected
+        if (adapted.length > 0 && !activeChatId) {
+          setActiveChatId(adapted[0].id);
+        }
       } catch (err) {
         console.error('Failed to load conversations', err);
       } finally {
@@ -37,8 +46,10 @@ export default function Home() {
       }
     }
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
+  // Load messages for the active chat
   useEffect(() => {
     if (!activeChatId) return;
     const chatId = activeChatId;
@@ -113,7 +124,12 @@ export default function Home() {
         <NavRail activeTab={activeTab} onTabChange={setActiveTab} />
         {activeTab === 'chats' ? (
           <>
-            <Sidebar conversations={conversations} activeId={activeChatId} onSelect={setActiveChatId} />
+            <Sidebar
+              conversations={conversations}
+              activeId={activeChatId}
+              onSelect={setActiveChatId}
+              onCreateGroup={() => setShowCreateGroup(true)} // NEW
+            />
             <ChatWindow conversation={activeConversation} onSendMessage={handleSendMessage} />
           </>
         ) : (
@@ -123,6 +139,13 @@ export default function Home() {
           </>
         )}
       </div>
+
+      {/* NEW: The Create Group Modal */}
+      <CreateGroupModal
+        isOpen={showCreateGroup}
+        onClose={() => setShowCreateGroup(false)}
+        onGroupCreated={() => setRefreshKey((prev) => prev + 1)}
+      />
     </div>
   );
 }
