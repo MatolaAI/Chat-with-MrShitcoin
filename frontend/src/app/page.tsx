@@ -1,86 +1,127 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NavRail from '@/components/NavRail';
 import Sidebar from '@/components/Sidebar';
 import ChatWindow from '@/components/ChatWindow';
 import StatusSidebar from '@/components/StatusSidebar';
 import StatusView from '@/components/StatusView';
-import { mockConversations, Conversation, Message } from '@/lib/mock-data';
+import { Conversation } from '@/lib/mock-data';
+import { ADMIN_USER_ID, fetchConversations, fetchMessages, sendMessage } from '@/services/api';
+import { adaptConversation } from '@/lib/adapter';
 
-// NEW: Added allowedViewers array
 export type MyStatus = {
   type: 'text' | 'image' | null;
   content: string;
-  allowedViewers: string[]; 
+  allowedViewers: string[];
 };
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'chats' | 'status'>('chats');
-  
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
-  const [activeChatId, setActiveChatId] = useState<string | null>(mockConversations[0].id);
-
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [myStatus, setMyStatus] = useState<MyStatus>({ type: null, content: '', allowedViewers: [] });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const apiConvs = await fetchConversations(ADMIN_USER_ID);
+        const adapted = apiConvs.map((c) => adaptConversation(c, ADMIN_USER_ID));
+        setConversations(adapted);
+        if (adapted.length > 0) setActiveChatId(adapted[0].id);
+      } catch (err) {
+        console.error('Failed to load conversations', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  useEffect(() => {
+    if (!activeChatId) return;
+    const chatId = activeChatId;
+    async function loadMessages() {
+      try {
+        const msgs = await fetchMessages(chatId);
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c.id !== chatId) return c;
+            return {
+              ...c,
+              messages: msgs.map((m) => ({
+                id: m.id,
+                text: m.body,
+                sender: m.senderId === ADMIN_USER_ID ? 'me' : 'them',
+                senderName: m.sender.name,
+                timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'read',
+              })),
+            };
+          })
+        );
+      } catch (err) {
+        console.error('Failed to load messages', err);
+      }
+    }
+    loadMessages();
+  }, [activeChatId]);
 
   const activeConversation = conversations.find((c) => c.id === activeChatId) || null;
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     if (!activeChatId) return;
-
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
-      text,
-      sender: 'me',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      status: 'sent',
-    };
-
-    setConversations((prev) =>
-      prev.map((chat) => {
-        if (chat.id === activeChatId) {
+    const chatId = activeChatId;
+    try {
+      await sendMessage(chatId, ADMIN_USER_ID, text);
+      const msgs = await fetchMessages(chatId);
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== chatId) return c;
           return {
-            ...chat,
+            ...c,
             lastMessage: text,
-            timestamp: newMessage.timestamp,
-            messages: [...chat.messages, newMessage],
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            messages: msgs.map((m) => ({
+              id: m.id,
+              text: m.body,
+              sender: m.senderId === ADMIN_USER_ID ? 'me' : 'them',
+              senderName: m.sender.name,
+              timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              status: 'read',
+            })),
           };
-        }
-        return chat;
-      })
-    );
+        })
+      );
+    } catch (err) {
+      console.error('Failed to send message', err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#0b141a] text-wa-text">
+        <p>Loading chats from database... 🚀</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#0b141a] p-0 lg:p-4">
       <div className="mx-auto flex h-full w-full max-w-[1600px] overflow-hidden lg:rounded-md bg-wa-panel shadow-2xl">
-        
         <NavRail activeTab={activeTab} onTabChange={setActiveTab} />
-        
         {activeTab === 'chats' ? (
           <>
-            <Sidebar
-              conversations={conversations}
-              activeId={activeChatId}
-              onSelect={setActiveChatId}
-            />
-            <ChatWindow 
-              conversation={activeConversation} 
-              onSendMessage={handleSendMessage} 
-            />
+            <Sidebar conversations={conversations} activeId={activeChatId} onSelect={setActiveChatId} />
+            <ChatWindow conversation={activeConversation} onSendMessage={handleSendMessage} />
           </>
         ) : (
           <>
             <StatusSidebar myStatus={myStatus} />
-            {/* We pass conversations to StatusView so it can filter eligible viewers */}
-            <StatusView 
-              myStatus={myStatus} 
-              onSetStatus={setMyStatus} 
-              conversations={conversations} 
-            />
+            <StatusView myStatus={myStatus} onSetStatus={setMyStatus} conversations={conversations} />
           </>
         )}
-
       </div>
     </div>
   );
