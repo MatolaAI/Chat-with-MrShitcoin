@@ -5,7 +5,8 @@ import { RedisModule } from './common/redis/redis.module';
 import { envValidationSchema } from './common/config/env.validation';
 import { AppController } from './app.controller';
 import { MessagesController } from './messages/messages.controller';
-import { ConversationsController } from './conversations/conversations.controller'; // NEW
+import { ConversationsController } from './conversations/conversations.controller';
+import { UsersController } from './users/users.controller';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { ConversationsController } from './conversations/conversations.controlle
     PrismaModule,
     RedisModule,
   ],
-  controllers: [AppController, MessagesController, ConversationsController], // NEW
+  controllers: [AppController, MessagesController, ConversationsController, UsersController],
 })
 export class AppModule {}

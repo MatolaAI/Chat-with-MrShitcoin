@@ -2,10 +2,18 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('Seeding database...');
+const contacts = [
+  'Mwarabu💚', 'Angel💚', 'Diana', 'Mshangazi sinza', 'Jamal April',
+  'Salha💚', 'Husna💚', 'Ali Kiba', 'Fatma Ally', 'David M.',
+  'Amina Issa', 'Joseph Mwita', 'Rehema Juma', 'Neema Mushi',
+  'Emmanuel', 'Zainab', 'Kelvin Peter', 'Grace Mushi', 'Baraka Tours',
+  'Support Team'
+];
 
-  // 1. Create Mr. Shitcoin (Admin)
+async function main() {
+  console.log('Seeding database with real contacts...');
+
+  // 1. Create Mr. Shitcoin (Admin) - keep the same email so we don't duplicate
   const admin = await prisma.user.upsert({
     where: { email: 'mr@shitcoin.com' },
     update: {},
@@ -16,59 +24,63 @@ async function main() {
     },
   });
 
-  // 2. Create a few contacts
-  const users = await Promise.all([
-    prisma.user.upsert({ where: { email: 'mwarabu@test.com' }, update: {}, create: { email: 'mwarabu@test.com', name: 'Mwarabu💚' } }),
-    prisma.user.upsert({ where: { email: 'angel@test.com' }, update: {}, create: { email: 'angel@test.com', name: 'Angel💚' } }),
-    prisma.user.upsert({ where: { email: 'diana@test.com' }, update: {}, create: { email: 'diana@test.com', name: 'Diana' } }),
-  ]);
-
-  // 3. Create a Direct Conversation between Mr. Shitcoin and Mwarabu
-  const directChat = await prisma.conversation.create({
-    data: {
-      type: 'DIRECT',
-      participants: {
-        create: [
-          { userId: admin.id },
-          { userId: users[0].id },
-        ],
+  // 2. Create all the real contacts
+  for (const name of contacts) {
+    // Generate a fake email from their name to satisfy the unique constraint
+    const email = name.toLowerCase().replace(/[^a-z0-9]/g, '') + '@test.com';
+    
+    await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        name,
+        role: 'CUSTOMER',
       },
-    },
-  });
+    });
+  }
 
-  // 4. Add messages to the direct chat
-  await prisma.message.createMany({
-    data: [
-      { conversationId: directChat.id, senderId: users[0].id, body: 'Habari za asubuhi?' },
-      { conversationId: directChat.id, senderId: admin.id, body: 'Nzuri sana, wewe je?' },
-    ],
-  });
-
-  // 5. Create a Group
-  const groupChat = await prisma.conversation.create({
-    data: {
-      type: 'GROUP',
-      title: 'Shitcoin introduction',
-      description: 'Welcome to the basics.',
-      adminOnly: false,
-      participants: {
-        create: [
-          { userId: admin.id },
-          { userId: users[1].id },
-          { userId: users[2].id },
-        ],
-      },
+  // 3. Create the 4 real Groups
+  const groups = [
+    { 
+      title: 'Shitcoin introduction', 
+      description: 'Welcome to the basics. Group created by Mr. Shitcoin.' 
     },
-  });
-
-  // 6. Add messages to the group
-  await prisma.message.create({
-    data: {
-      conversationId: groupChat.id,
-      senderId: admin.id,
-      body: 'Welcome everyone to the group!',
+    { 
+      title: 'Cryptocurrency from beginner', 
+      description: 'A safe place for beginners to ask questions.' 
     },
-  });
+    { 
+      title: 'Shitcoin Masterclass', 
+      description: 'Only admins can post here. Important announcements only.',
+      adminOnly: true
+    },
+    { 
+      title: 'Road to dubai', 
+      description: 'Planning the next crypto meetup in Dubai.' 
+    },
+  ];
+
+  for (const group of groups) {
+    // Check if group already exists to avoid duplication
+    const existing = await prisma.conversation.findFirst({
+      where: { title: group.title, type: 'GROUP' }
+    });
+
+    if (!existing) {
+      await prisma.conversation.create({
+        data: {
+          type: 'GROUP',
+          title: group.title,
+          description: group.description,
+          adminOnly: group.adminOnly || false,
+          participants: {
+            create: [{ userId: admin.id }],
+          },
+        },
+      });
+    }
+  }
 
   console.log('Seeding complete!');
 }
